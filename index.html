@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduShare Cloud (Firebase)</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Firebase compat CDN (simple for static projects) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">EduShare</div>
+    <nav class="nav">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#dashboard" id="nav-dashboard">Dashboard</a>
+      <a href="#browse" id="nav-browse">Browse</a>
+      <a href="#messages">Messages</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="auth-actions" id="authActions">
+      <button id="btnOpenAuth" class="btn-outline">Login / Sign Up</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <h1>Cloud-based Education Sharing System</h1>
+        <p>Upload, share, and access educational resources anytime, anywhere.</p>
+        <a href="#features" class="btn-primary">Explore Features</a>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2>Key Features</h2>
+      <div class="feature-cards">
+        <div class="card"><div class="icon">📁</div><h3>Upload & Download</h3><p>Teachers & Students can upload and retrieve resources securely.</p></div>
+        <div class="card"><div class="icon">💬</div><h3>Discussions & Q&A</h3><p>Collaborate, ask questions, and share insights with peers.</p></div>
+        <div class="card"><div class="icon">📊</div><h3>Analytics Dashboard</h3><p>Track usage, downloads, ratings, and engagement.</p></div>
+        <div class="card"><div class="icon">🔒</div><h3>Secure Storage</h3><p>Firebase Storage with secure rules and backup.</p></div>
+      </div>
+    </section>
+
+    <!-- Dashboard (visible when logged in) -->
+    <section id="dashboard" class="dashboard-preview hidden">
+      <div class="dash-header">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <img id="avatarImg" src="" alt="avatar" style="width:56px;height:56px;border-radius:50%;object-fit:cover;display:none;border:2px solid #e6eef5" />
+          <div>
+            <h2 id="welcomeText">Welcome</h2>
+            <p class="muted" id="userEmail">—</p>
+            <small id="userRole" style="color:#64748b"></small>
+          </div>
+        </div>
+        <div class="dash-actions">
+          <button id="btnEditProfile" class="btn-ghost">Edit Profile</button>
+          <button id="btnLogout" class="btn-danger">Log out</button>
+        </div>
+      </div>
+
+      <div class="upload-panel">
+        <h3>Upload Resource</h3>
+        <form id="uploadForm">
+          <input id="title" type="text" placeholder="Resource title" required />
+          <select id="category">
+            <option value="notes">Notes</option>
+            <option value="assignment">Assignment</option>
+            <option value="video">Video</option>
+            <option value="other">Other</option>
+          </select>
+          <input id="fileInput" type="file" required />
+          <label class="small-label">Make file public?</label>
+          <div class="row">
+            <label class="switch">
+              <input id="isPublic" type="checkbox" checked />
+              <span class="slider"></span>
+            </label>
+            <button type="submit" class="btn-primary">Upload to Firebase</button>
+          </div>
+        </form>
+        <div id="uploadStatus" class="upload-status"></div>
+      </div>
+
+      <div class="my-uploads">
+        <h3>Your Recent Uploads</h3>
+        <div id="myUploadsList" class="resource-grid"></div>
+      </div>
+    </section>
+
+    <!-- Browse all resources -->
+    <section id="browse" class="browse-section">
+      <h2>Browse Resources</h2>
+      <div id="resourceList" class="resource-grid"></div>
+    </section>
+
+    <!-- Messages -->
+    <section id="messages" class="contact">
+      <h2>Messages / Posts</h2>
+      <form id="messageForm" class="message-form">
+        <textarea id="messageText" placeholder="Write a message or announcement..." rows="3" required></textarea>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn-primary" type="submit">Post Message</button>
+          <small style="color:#64748b">Messages are public</small>
+        </div>
+      </form>
+      <div id="messagesList" class="resource-grid"></div>
+    </section>
+
+    <section id="contact" class="contact">
+      <h2>Contact Us</h2>
+      <form id="contactForm">
+        <input type="text" name="name" placeholder="Your Name" required />
+        <input type="email" name="email" placeholder="Your Email" required />
+        <textarea name="message" rows="4" placeholder="Message…" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 EduShare. All rights reserved.</p>
+  </footer>
+
+  <!-- Auth & Profile Modals -->
+  <div id="authModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="closeAuth">&times;</button>
+      <h3 id="modalTitle">Login / Sign Up</h3>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="signup">Sign Up</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active">
+        <input id="loginEmail" type="email" placeholder="Email" required />
+        <input id="loginPass" type="password" placeholder="Password" required />
+        <button class="btn-primary" type="submit">Login</button>
+      </form>
+
+      <form id="signupForm" class="auth-form">
+        <input id="signupName" type="text" placeholder="Full name" required />
+        <select id="signupRole">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <input id="signupEmail" type="email" placeholder="Email" required />
+        <input id="signupPass" type="password" placeholder="Password (6+ chars)" required />
+        <button class="btn-primary" type="submit">Create account</button>
+      </form>
+
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="closeProfile">&times;</button>
+      <h3>Edit Profile</h3>
+      <form id="profileForm">
+        <input id="profileName" type="text" placeholder="Full name" required />
+        <select id="profileRole">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <input id="avatarInput" type="file" accept="image/*" />
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn-primary" type="submit">Save</button>
+          <button type="button" id="btnCancelProfile" class="btn-outline">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
